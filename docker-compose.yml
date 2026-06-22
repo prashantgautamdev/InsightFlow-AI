@@ -1,0 +1,105 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: insightflow_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: insightflow
+      POSTGRES_PASSWORD: insightflow
+      POSTGRES_DB: insightflow_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U insightflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: insightflow_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+    container_name: insightflow_backend
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: postgresql://insightflow:insightflow@db:5432/insightflow_db
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - backend_uploads:/app/uploads
+      - backend_artifacts:/app/artifacts
+      - backend_chroma:/app/chroma_store
+    ports:
+      - "8000:8000"
+
+  celery_worker:
+    build:
+      context: ./backend
+    container_name: insightflow_celery_worker
+    restart: unless-stopped
+    command: celery -A app.celery_app worker --loglevel=info
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: postgresql://insightflow:insightflow@db:5432/insightflow_db
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+    depends_on:
+      - backend
+      - redis
+    volumes:
+      - backend_uploads:/app/uploads
+      - backend_artifacts:/app/artifacts
+      - backend_chroma:/app/chroma_store
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: insightflow_frontend
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: insightflow_nginx
+    restart: unless-stopped
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+      - frontend
+
+volumes:
+  postgres_data:
+  backend_uploads:
+  backend_artifacts:
+  backend_chroma:

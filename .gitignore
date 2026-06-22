@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+*.egg-info/
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# Env
+.env
+*.env.local
+
+# Uploads / artifacts
+backend/uploads/
+backend/artifacts/
+backend/chroma_store/
+
+# OS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log

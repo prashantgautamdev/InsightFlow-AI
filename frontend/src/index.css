@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { scroll-behavior: smooth; }
+  body {
+    @apply bg-background;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(124,58,237,0.25), transparent),
+      radial-gradient(ellipse 60% 40% at 100% 0%, rgba(34,211,238,0.12), transparent);
+    background-attachment: fixed;
+  }
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 9999px; }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-surface-glass backdrop-blur-xl border border-border rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.4)];
+  }
+  .glass-panel {
+    @apply bg-surface/60 backdrop-blur-xl border border-border rounded-3xl;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-hero px-5 py-2.5 font-semibold text-white shadow-lg shadow-primary/25 transition-transform hover:scale-[1.02] active:scale-[0.98];
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-white/5 px-5 py-2.5 font-medium text-white transition-colors hover:bg-white/10;
+  }
+  .input-field {
+    @apply w-full rounded-xl border border-border bg-white/5 px-4 py-2.5 text-sm text-white placeholder:text-muted focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors;
+  }
+  .label-text { @apply text-sm font-medium text-muted mb-1.5 block; }
+  .gradient-text { @apply bg-gradient-hero bg-clip-text text-transparent; }
+  .skeleton { @apply animate-pulse rounded-xl bg-white/5; }
+}
